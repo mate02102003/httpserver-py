@@ -12,28 +12,7 @@ import sys
 
 from http import HTTPStatus, HTTPMethod
 
-
-def pformat_tuple(__dict: dict, indent: int = 0) -> str:
-    acc = " " * indent + "(\n"
-    for key in __dict:
-            acc += f"{" " * indent} {key}: {__dict[key]}\n"
-    acc += " " * indent + ")"
-    return acc
-
-def pformat_dict(__tuple: dict, indent: int = 0) -> str:
-    acc = " " * indent + "{\n"
-    for key in __tuple:
-            acc += f"{" " * indent} {key}: {__tuple[key]}\n"
-    acc += " " * indent + "}"
-    return acc
-
-def pformat(__obj: object, indent: int = 0) -> str:
-    o_type = type(__obj)
-
-    if o_type == tuple:
-        return pformat_tuple(__obj, indent)
-    if o_type == dict:
-        return pformat_dict(__obj, indent)
+from my_pprint import PP_Repr
 
 NOT_FOUND_PAGE_PATH = "not_found.html"
 NOT_FOUND_PAGE = """
@@ -50,19 +29,9 @@ NOT_FOUND_PAGE = """
                  </body>
                  </html>
                  """
+ 
 
-class Repr:
-    format_join = " "
-    format_func = staticmethod(pformat)
-    format_indent = 4
-    
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(\n{self.format_join.join(f"{" "* self.format_indent}{attr}: {self.format_func(getattr(self, attr), self.format_indent)[self.format_indent:]}" for attr in dir(self) if not attr.startswith("_") and getattr(Repr, attr, None) is None)}\n{" " * (self.format_indent - 4)})"
-    
-
-class HTTPHeaders(Repr):
-    format_func = staticmethod(pformat_dict)
-
+class HTTPHeaders(PP_Repr):
     authentication_headers: dict[str, str | None]
     caching_headers: dict[str, str | None]
     conditionals_headers: dict[str, str | None]
@@ -132,7 +101,7 @@ class HTTPRequest:
         for line in headers:
             header_name, header_content = line.split(':', maxsplit=1)
 
-            for header_type in [getattr(http_request.headers, h) for h in dir(http_request.headers) if not h.startswith("_") and getattr(Repr, h, None) is None]:
+            for header_type in [getattr(http_request.headers, h) for h in dir(http_request.headers) if not h.startswith("_") and getattr(PP_Repr, h, None) is None]:
                 header_type: dict[str, str | None]
 
                 if header_type.get(header_name, False) is None:
@@ -144,7 +113,7 @@ class HTTPRequest:
         return f"HTTPRequest(\n\thead: {self.method} {self.target} {self.version}\n\theaders: {self.headers}\n\tbody: {self.body}\n)\n"
 
 @dataclasses.dataclass
-class HTTPResponse(Repr):
+class HTTPResponse(PP_Repr):
     status: HTTPStatus = HTTPStatus.OK
     headers: HTTPHeaders = dataclasses.field(default_factory=HTTPHeaders)
     querry_params: dict[str, str] = dataclasses.field(default_factory=dict)
