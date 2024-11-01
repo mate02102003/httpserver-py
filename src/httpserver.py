@@ -12,7 +12,7 @@ import sys
 
 from http import HTTPStatus, HTTPMethod
 
-from ppformat import PP_Repr
+from pformat import PP_Repr
 
 NOT_FOUND_PAGE_PATH = "not_found.html"
 NOT_FOUND_PAGE = """

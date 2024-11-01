@@ -1,29 +1,29 @@
-def ppformat_tuple(__tuple: tuple, indent: int = 0) -> str:
+def pformat_tuple(__tuple: tuple, indent: int = 0) -> str:
     acc = "(\n"
     for value in __tuple:
-            acc += f"{" " * indent} {ppformat(__tuple[value], indent + len(str(value)) + 3)}\n"
+            acc += f"{" " * indent} {pformat(__tuple[value], indent + len(str(value)) + 3)}\n"
     acc += " " * indent + ")"
     return acc
 
-def ppformat_dict(__dict: dict, indent: int = 0) -> str:
+def pformat_dict(__dict: dict, indent: int = 0) -> str:
     acc = "{\n"
     for key in __dict:
-            acc += f"{" " * indent} {key}: {ppformat(__dict[key], indent + len(str(key)) + 3)}\n"
+            acc += f"{" " * indent} {key}: {pformat(__dict[key], indent + len(str(key)) + 3)}\n"
     acc += " " * indent + "}"
     return acc
 
-def ppformat(__obj: object, indent: int = 0) -> str:
+def pformat(__obj: object, indent: int = 0) -> str:
     o_type = type(__obj)
 
     if issubclass(o_type, tuple):
-        return ppformat_tuple(__obj, indent)
+        return pformat_tuple(__obj, indent)
     if issubclass(o_type, dict):
-        return ppformat_dict(__obj, indent)
+        return pformat_dict(__obj, indent)
     return repr(__obj)
     
 class PP_Repr:
     format_join = "\n"
-    format_func = staticmethod(ppformat)
+    format_func = staticmethod(pformat)
     format_indent = 4
     
     def __repr__(self) -> str:
