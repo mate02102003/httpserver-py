@@ -4,6 +4,8 @@ Pretty format
 This module serves as pretty formatter for the built-in classes in python
 """
 
+from types import FunctionType, MethodType
+
 def pformat_int(__int: int) -> str:
     return f"{__int:_}"
 
@@ -74,7 +76,7 @@ class PP_Repr:
         indent = " " * self.format_indent
         formated_attrs = self.format_join.join(
              indent + f"{attr}: {self.format_func(getattr(self, attr), self.format_indent)}"
-             for attr in dir(self) if not attr.startswith("_") and getattr(PP_Repr, attr, None) is None
+             for attr in dir(self) if not attr.startswith("_") and getattr(PP_Repr, attr, None) is None and not isinstance(getattr(self, attr), (FunctionType, MethodType))
         )
 
         return f"{class_name}(\n{formated_attrs}\n{" " * (self.format_indent - 4)})"
