@@ -3,7 +3,7 @@ import typing
 
 from pformat import PP_Repr
 
-@dataclasses.dataclass
+@dataclasses.dataclass(repr=False)
 class HTTPHeaders(PP_Repr):
     authentication_headers: dict[str, str | None]           = dataclasses.field(default_factory=lambda: {"WWW-Authenticate": None, "Authorization": None, "Proxy-Authenticate": None, "Proxy-Authorization": None}, init=False)
     caching_headers: dict[str, str | None]                  = dataclasses.field(default_factory=lambda: {"Age": None, "Cache-Control": None, "Clear-Site-Data": None, "Expires": None, "No-Vary-Search": None}, init=False)
