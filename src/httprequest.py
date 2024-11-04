@@ -4,6 +4,7 @@ import urllib.parse
 from http import HTTPMethod
 
 from pformat import PP_Repr
+from httpconstants import CRLF
 from httpheaders import HTTPHeaders
 
 @dataclasses.dataclass(repr=False)
@@ -12,7 +13,7 @@ class HTTPRequest(PP_Repr):
     target: str              = dataclasses.field(init=False)
     version: tuple[int, int] = dataclasses.field(default=(1, 1))
     headers: HTTPHeaders     = dataclasses.field(default_factory=HTTPHeaders)
-    body: str                = dataclasses.field(default="\r\n")
+    body: str                = dataclasses.field(default=CRLF)
 
     @staticmethod
     def parse_request(request: str) -> "HTTPRequest":
@@ -20,7 +21,7 @@ class HTTPRequest(PP_Repr):
 
         request_line, *rest = request.splitlines()
 
-        headers, http_request.body = rest[:rest.index("")], "\r\n".join(rest[rest.index(""):])
+        headers, http_request.body = rest[:rest.index("")], CRLF.join(rest[rest.index(""):])
 
         method, target, version = request_line.split()
 
