@@ -29,14 +29,25 @@ class HTTPHeaders(PP_Repr):
     other_headers: dict[str, str | None]                    = dataclasses.field(default_factory=lambda: {}, init=False)
 
     def __getitem__(self: typing.Self, __key: str) -> str | None:
-        for sub_headers in dataclasses.fields(self):
-            if __key in getattr(self, sub_headers.name):
-                return getattr(self, sub_headers.name)[__key]
+        for header_group in dataclasses.fields(self):
+            if __key in getattr(self, header_group.name):
+                return getattr(self, header_group.name)[__key]
     
     def __setitem__(self: typing.Self, __key: str, __value: str) -> str | None:
-        for sub_headers in dataclasses.fields(self):
-            if __key in getattr(self, sub_headers.name):
-                getattr(self, sub_headers.name)[__key] = __value
+        for header_group in dataclasses.fields(self):
+            if __key in getattr(self, header_group.name):
+                getattr(self, header_group.name)[__key] = __value
                 return
         
         self.other_headers[__key] = __value
+    
+    def get_headers(self:typing.Self) -> dict[str, str]:
+        headers: dict[str, str] = dict()
+
+        for header_group in dataclasses.fields(self):
+            header_group_dict: dict[str, str | None] = getattr(self, header_group.name)
+            for header_name, value in header_group_dict.items():
+                if value is not None:
+                    headers[header_name] = value
+        
+        return headers
