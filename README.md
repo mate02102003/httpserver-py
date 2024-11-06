@@ -1,1 +1,1 @@
-A basic http server written in Python
+HTTP/HTTPS server written in Python
