@@ -14,35 +14,35 @@ def pformat_complex(__complex: complex) -> str:
 
 def pformat_tuple(__tuple: tuple, indent: int = 0) -> str:
     acc = "(\n"
-    for value in __tuple:
-            acc += f"{" " * indent} {pformat(__tuple[value], indent + len(str(value)) + 3)}\n"
+    for value in enumerate(__tuple):
+            acc += f"{" " * indent} {pformat(value, indent + 3)}\n"
     acc += " " * indent + ")"
     return acc
 
 def pformat_list(__list: list, indent: int = 0) -> str:
     acc = "[\n"
     for value in __list:
-            acc += f"{" " * indent} {pformat(__list[value], indent + len(str(value)) + 3)}\n"
+            acc += f"{" " * indent} {pformat(value, indent + 3)}\n"
     acc += " " * indent + "]"
     return acc
 
 def pformat_set(__set: set, indent: int = 0) -> str:
     acc = "{\n"
     for value in __set:
-            acc += f"{" " * indent} {pformat(__set[value], indent + len(str(value)) + 3)}\n"
+            acc += f"{" " * indent} {pformat(value, indent + 3)}\n"
     acc += " " * indent + "}"
 
 def pformat_frozenset(__fset: frozenset, indent: int = 0) -> str:
     acc = "frozenset{\n"
     for value in __fset:
-            acc += f"{" " * indent} {pformat(__fset[value], indent + len(str(value)) + 3)}\n"
+            acc += f"{" " * indent} {pformat(value, indent + 3)}\n"
     acc += " " * indent + "}"
     return acc
 
 def pformat_dict(__dict: dict, indent: int = 0) -> str:
     acc = "{\n"
     for key in __dict:
-            acc += f"{" " * indent} {key}: {pformat(__dict[key], indent + len(str(key)) + 3)}\n"
+            acc += f"{" " * indent} {key}: {pformat(__dict[key], indent + 3)}\n"
     acc += " " * indent + "}"
     return acc
 
