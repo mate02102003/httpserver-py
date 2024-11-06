@@ -18,7 +18,7 @@
 </body>
 <script>
     const code_html = document.querySelector("#source_code");
-    fetch("../src/httpserver.py")
+    fetch("httpserver.py")
         .then(res => res.text())
         .then(text => code_html.innerHTML = Prism.highlight(text, Prism.languages.python));
 </script>
