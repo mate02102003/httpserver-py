@@ -1,0 +1,40 @@
+* {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: wheat;
+}
+
+body {
+    margin: 0;
+    background-color: #181818;
+}
+
+.content {
+    margin: 0;
+    padding: 1rem;
+    border: solid white;
+    border-width: .25rem 0;
+}
+
+.content>div {
+    margin: 1rem 0;
+}
+
+nav>a {
+    display: inline-block;
+    width: 5rem;
+    text-align: center;
+    padding: 0.8rem 0.4rem;
+    font-weight: bold;
+    text-decoration: none;
+    margin: 0;
+}
+
+nav>a:hover {
+    color: #181818;
+    background-color: #f1c269;
+}
+
+.current_page {
+    color: #181818;
+    background-color: wheat;
+}

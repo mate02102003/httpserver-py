@@ -53,11 +53,5 @@ venv.bak/
 
 # Custom
 Torrent
-code
-css
-oneko
-syntax_higlight
-favicon.*
-*.html
 *.crt
 *.key
