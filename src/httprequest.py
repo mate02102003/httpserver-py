@@ -1,5 +1,6 @@
 import dataclasses
 import urllib.parse
+import typing
 
 from http import HTTPMethod
 
@@ -9,28 +10,39 @@ from httpheaders import HTTPHeaders
 
 @dataclasses.dataclass(repr=False)
 class HTTPRequest(PP_Repr):
-    method: HTTPMethod       = dataclasses.field(init=False)
-    target: str              = dataclasses.field(init=False)
-    version: tuple[int, int] = dataclasses.field(default=(1, 1))
-    headers: HTTPHeaders     = dataclasses.field(default_factory=HTTPHeaders)
-    body: str                = dataclasses.field(default=CRLF)
+    method: HTTPMethod           = dataclasses.field(init=False)
+    target: str                  = dataclasses.field(init=False)
+    query_params: dict[str, str] = dataclasses.field(init=False)
+    version: tuple[int, int]     = dataclasses.field(default=(1, 1))
+    headers: HTTPHeaders         = dataclasses.field(default_factory=HTTPHeaders)
+    body: str                    = dataclasses.field(default=CRLF)
 
-    @staticmethod
-    def parse_request(request: str) -> "HTTPRequest":
-        http_request = HTTPRequest()
+    def parse_request(self: typing.Self, request: str) -> None:
+        request_lines = request.splitlines()
 
-        request_line, *rest = request.splitlines()
+        head_end = request_lines.index("")
 
-        headers, http_request.body = rest[:rest.index("")], CRLF.join(rest[rest.index(""):])
+        request_head, self.body = CRLF.join(request_lines[:head_end]), CRLF.join(request_lines[head_end:])
+        self.parse_request_head(request_head)
 
-        method, target, version = request_line.split()
 
-        http_request.method = HTTPMethod(method)
-        http_request.target = urllib.parse.unquote(target)
-        http_request.version = tuple(map(int, version.split("/")[1].split(".")))
+    def parse_request_head(self: typing.Self, request_head: str) -> None:
+        request_line, *headers = request_head.splitlines()
+
+        method, target_and_params, version = request_line.split()
+        try:
+            target, params = target_and_params.split("?")
+        except ValueError:
+            target = target_and_params
+            params = ""
+        finally:
+            target = target.split("#")[0]
+
+        self.method       = HTTPMethod(method)
+        self.target       = urllib.parse.unquote(target)
+        self.query_params = dict(tuple(param.split("=")) for param in params.split("&")) if len(params) != 0 else dict()
+        self.version      = tuple(map(int, version.split("/")[1].split(".")))
 
         for line in headers:
             header_name, header_content = line.split(':', maxsplit=1)
-            http_request.headers[header_name] = header_content.strip()  
-
-        return http_request
+            self.headers[header_name] = header_content.strip()
