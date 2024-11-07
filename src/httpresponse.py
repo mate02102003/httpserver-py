@@ -86,25 +86,25 @@ class HTTPResponse(PP_Repr):
 
             body = gzip.compress(file_data)
             self.headers["Content-Length"] = len(body)
-        elif request.headers.range_requests_headers["Range"].startswith("bytes"):
-            ranges = request.headers.range_requests_headers["Range"].split(";")
+        # elif request.headers.range_requests_headers["Range"].startswith("bytes"):
+            # ranges = request.headers.range_requests_headers["Range"].split(";")
 
-            r = ranges[0]
+            # r = ranges[0]
 
-            ittr = map(int, r.split("=")[1].split("-"))
+            # ittr = map(int, r.split("=")[1].split("-"))
 
-            start = next(ittr)
-            try:
-                end = next(ittr)
-            except ValueError:
-                end = len(file_data) - 1
+            # start = next(ittr)
+            # try:
+                # end = next(ittr)
+            # except ValueError:
+                # end = len(file_data) - 1
 
-            body = file_data[start : start+1024 if end == len(file_data) - 1 else end+1]
+            # body = file_data[start : start+1024 if end == len(file_data) - 1 else end+1]
 
-            self.status = HTTPStatus.PARTIAL_CONTENT
+            # self.status = HTTPStatus.PARTIAL_CONTENT
 
-            self.headers["Content-Range"] = f"bytes={start}-{end}/{len(file_data)}"
-            self.headers["Content-Length"] = end - start + 1
+            # self.headers["Content-Range"] = f"bytes={start}-{end}/{len(file_data)}"
+            # self.headers["Content-Length"] = end - start + 1
         else:
             body = file_data
             self.headers["Content-Length"] = len(body)
