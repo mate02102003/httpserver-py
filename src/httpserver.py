@@ -39,9 +39,12 @@ def main(running: list[bool]) -> None:
         https_server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
         addr = ""
-        if len(sys.argv) > 2:
+        if len(sys.argv) > 1:
             http_port = int(sys.argv[1])
-            https_port = int(sys.argv[1])
+            if len(sys.argv) > 2:
+                https_port = int(sys.argv[2])
+            else:
+                https_port = 443
         else:
             http_port = 80
             https_port = 443
