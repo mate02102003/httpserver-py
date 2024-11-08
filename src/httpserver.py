@@ -68,6 +68,8 @@ def main(running: list[bool]) -> None:
                     try:
                         client, _ = sock.accept()
                         inputs.append(client)
+                    except ConnectionError:
+                        pass
                     except ssl.SSLError:
                         pass
                 else:
@@ -76,9 +78,11 @@ def main(running: list[bool]) -> None:
                     except ConnectionError:
                         sock.close()
                         inputs.remove(sock)
+                        continue
                     except ssl.SSLError:
                         sock.close()
                         inputs.remove(sock)
+                        continue
 
                     if sock._closed:
                         inputs.remove(sock)
