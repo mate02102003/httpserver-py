@@ -1,6 +1,7 @@
 from typing import Final
 
-CHAR: Final[tuple[str]]    = tuple(octet.to_bytes().decode("ascii") for octet in range(128))
+OCTET: Final[tuple[bytes]] = tuple(octet.to_bytes() for octet in range(256))
+CHAR: Final[tuple[str]]    = tuple(map(lambda b: b.decode("ascii"), OCTET[:128]))
 UPALPHA: Final[tuple[str]] = tuple(filter(str.isupper, CHAR))
 LOALPHA: Final[tuple[str]] = tuple(filter(str.islower, CHAR))
 ALPHA: Final[tuple[str]]   = UPALPHA + LOALPHA
@@ -12,3 +13,4 @@ SP: Final[str]             = ' '
 HT: Final[str]             = '\t'
 DQ: Final[str]             = '"'
 CRLF: Final[str]           = CR + LF
+HEX: Final[tuple[str]]     = "A" , "B" , "C" , "D" , "E" , "F" , "a" , "b" , "c" , "d" , "e" , "f" , *DIGIT
