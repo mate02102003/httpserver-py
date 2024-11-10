@@ -1,6 +1,6 @@
 # oneko.js
 
-A hacky script written by [adryd325](https://github.com/adryd325) to put a cat on my site.
+A hacky script written by [adryd325](https://github.com/adryd325) to put a cat on sites.
 
 The default image is `oneko.gif` in the same directory as the script. This can be changed by adding `data-cat="yourimage.png"` to your `<script>` tag.
 
