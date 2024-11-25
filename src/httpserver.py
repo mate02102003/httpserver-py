@@ -8,17 +8,21 @@ from httpresponse import HTTPResponse
 
 def handle_request(sock: socket.socket) -> None:
     try:
-        request = sock.recv(1024 * 64).decode()
+        request = sock.recv(1024 * 64)
     except:
         return sock.close()
 
     if request:
         http_request = HTTPRequest()
         http_request.parse_request(request)
+
         print("[INFO]:", http_request.method.name, http_request.target, f"HTTP/{http_request.version[0]}.{http_request.version[1]}")
+
         response = HTTPResponse.generate_response(http_request, "gzip" in http_request.headers["Accept-Encoding"])
         sock.sendall(response.encode_head())
+
         print("[INFO]:", response.head.decode().splitlines()[0])
+
         sock.sendall(response.encode_body())
         if (conn:=getattr(http_request.headers, "Connection", None) is not None) and conn.lower() != "keep-alive":
             sock.close()
