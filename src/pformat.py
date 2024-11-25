@@ -14,7 +14,7 @@ def pformat_complex(__complex: complex) -> str:
 
 def pformat_tuple(__tuple: tuple, indent: int = 0) -> str:
     acc = "(\n"
-    for value in enumerate(__tuple):
+    for value in __tuple:
             acc += f"{" " * indent} {pformat(value, indent + 3)}\n"
     acc += " " * indent + ")"
     return acc
@@ -49,21 +49,32 @@ def pformat_dict(__dict: dict, indent: int = 0) -> str:
 def pformat(__obj: object, indent: int = 0) -> str:
     o_type = type(__obj)
 
+    formated = None
     if issubclass(o_type, int):
         return pformat_int(__obj)
     if issubclass(o_type, complex):
         return pformat_complex(__obj)
     if issubclass(o_type, tuple):
-        return pformat_tuple(__obj, indent)
-    if issubclass(o_type, list):
-        return pformat_list(__obj, indent)
-    if issubclass(o_type, set):
-        return pformat_set(__obj, indent)
-    if issubclass(o_type, frozenset):
-        return pformat_frozenset(__obj, indent)
-    if issubclass(o_type, dict):
-        return pformat_dict(__obj, indent)
-    return repr(__obj)
+        formated = pformat_tuple(__obj, indent)
+    elif issubclass(o_type, list):
+        formated = pformat_list(__obj, indent)
+    elif issubclass(o_type, set):
+        formated = pformat_set(__obj, indent)
+    elif issubclass(o_type, frozenset):
+        formated = pformat_frozenset(__obj, indent)
+    elif issubclass(o_type, dict):
+        formated = pformat_dict(__obj, indent)
+    
+    if formated is None:
+        return repr(__obj)
+    
+    if len(formated) < 32:
+        formated = formated.replace(" ", "")
+        formated_slices = formated.split("\n")
+        formated = formated_slices[0] + ", ".join(formated_slices[1:-1]) + formated_slices[-1]
+    
+    return formated
+
     
 class PP_Repr:
     format_join = "\n"
@@ -76,7 +87,10 @@ class PP_Repr:
         indent = " " * self.format_indent
         formated_attrs = self.format_join.join(
              indent + f"{attr}: {self.format_func(getattr(self, attr), self.format_indent)}"
-             for attr in dir(self) if not attr.startswith("_") and getattr(PP_Repr, attr, None) is None and not isinstance(getattr(self, attr), (FunctionType, MethodType))
+             for attr in dir(self) \
+                if not attr.startswith("_") \
+                    and getattr(PP_Repr, attr, None) is None \
+                    and not isinstance(getattr(self, attr), (FunctionType, MethodType))
         )
 
         return f"{class_name}(\n{formated_attrs}\n{" " * (self.format_indent - 4)})"
