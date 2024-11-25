@@ -5,6 +5,11 @@ from pformat import PP_Repr
 
 @dataclasses.dataclass(repr=False)
 class HTTPHeaders(PP_Repr):
+    """
+    Collects most of the HTTP headers into their respective catagory.
+
+    It offers easy setting and accessing their name via `__setitem__` and `__getitem__` dunder methods.
+    """
     authentication_headers: dict[str, str | None]           = dataclasses.field(default_factory=lambda: {"WWW-Authenticate": None, "Authorization": None, "Proxy-Authenticate": None, "Proxy-Authorization": None}, init=False)
     caching_headers: dict[str, str | None]                  = dataclasses.field(default_factory=lambda: {"Age": None, "Cache-Control": None, "Clear-Site-Data": None, "Expires": None, "No-Vary-Search": None}, init=False)
     conditionals_headers: dict[str, str | None]             = dataclasses.field(default_factory=lambda: {"Last-Modified": None, "ETag": None, "If-Match": None, "If-None-Match": None, "If-Modified-Since": None, "If-Unmodified-Since": None, "Vary": None}, init=False)
@@ -42,6 +47,7 @@ class HTTPHeaders(PP_Repr):
         self.other_headers[__key] = __value
     
     def get_headers(self:typing.Self) -> dict[str, str]:
+        """Returns the set HTTP headers"""
         headers: dict[str, str] = dict()
 
         for header_group in dataclasses.fields(self):
