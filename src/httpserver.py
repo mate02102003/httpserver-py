@@ -3,8 +3,9 @@ import select
 import sys
 import ssl
 
-from httprequest import HTTPRequest
+from httprequest  import HTTPRequest
 from httpresponse import HTTPResponse
+from httphandler  import HTTPHandler
 
 def handle_request(sock: socket.socket) -> None:
     try:
@@ -18,7 +19,7 @@ def handle_request(sock: socket.socket) -> None:
 
         print("[INFO]:", http_request.method.name, http_request.target, f"HTTP/{http_request.version[0]}.{http_request.version[1]}")
 
-        response = HTTPResponse.generate_response(http_request, "gzip" in http_request.headers["Accept-Encoding"])
+        response = HTTPHandler.generate_response(http_request, "gzip" in http_request.headers["Accept-Encoding"])
         sock.sendall(response.encode_head())
 
         print("[INFO]:", response.head.decode().splitlines()[0])
