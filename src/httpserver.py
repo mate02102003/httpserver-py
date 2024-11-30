@@ -133,7 +133,7 @@ def main() -> None:
         http.start()
         https.start()
 
-        while http.is_alive() and https.is_alive():
+        while http.is_alive() or https.is_alive():
             sleep(0.1)
 
 if __name__ == "__main__":
