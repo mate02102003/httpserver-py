@@ -10,6 +10,7 @@ from http import HTTPStatus, HTTPMethod
 from httprequest import HTTPRequest
 from httpresponse import HTTPResponse
 from httpconstants import NOT_FOUND_PAGE, NOT_FOUND_PAGE_PATH
+from httputil import optional
 
 @dataclasses.dataclass
 class HTTPHandler:
@@ -21,11 +22,11 @@ class HTTPHandler:
             case HTTPMethod.GET:
                 cls.GET(response, request)
             case HTTPMethod.POST:
-                pass
+                cls.POST()
             case HTTPMethod.HEAD:
-                pass
+                cls.HEAD()
             case HTTPMethod.OPTIONS:
-                pass
+                cls.OPTIONS()
         
         return response
     
@@ -85,3 +86,18 @@ class HTTPHandler:
         
         response.construct_head(request, file_stat)
         response.body = body
+    
+    @classmethod
+    @optional
+    def POST(cls: type[typing.Self]):
+        pass
+
+    @classmethod
+    @optional
+    def HEAD(cls: type[typing.Self]):
+        pass
+
+    @classmethod
+    @optional
+    def OPTIONS(cls: type[typing.Self]):
+        pass
