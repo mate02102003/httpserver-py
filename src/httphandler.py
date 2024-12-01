@@ -7,8 +7,7 @@ import os.path
 
 from http import HTTPStatus, HTTPMethod
 
-from httprequest import HTTPRequest
-from httpresponse import HTTPResponse
+from httpmessage import HTTPRequest, HTTPResponse
 from httpconstants import NOT_FOUND_PAGE, NOT_FOUND_PAGE_PATH
 from httputil import optional
 

@@ -12,7 +12,7 @@ if typing.TYPE_CHECKING:
 
 from time import sleep
 
-from httprequest  import HTTPRequest
+from httpmessage  import HTTPRequest
 from httphandler  import HTTPHandler
 
 class HTTPServer:
