@@ -133,6 +133,8 @@ def main() -> None:
         http.start()
         https.start()
 
+        https_server.load_cert()
+
         while http.is_alive() or https.is_alive():
             sleep(0.1)
 
