@@ -12,6 +12,7 @@ if typing.TYPE_CHECKING:
 
 from time import sleep
 
+import httpconstants
 from httpmessage  import HTTPRequest
 from httphandler  import HTTPHandler
 
@@ -22,15 +23,20 @@ class HTTPServer:
 
     addr: tuple[str, int]
     clients: dict[tuple[str, int], socket.socket]
+    currently_handling: set[tuple[str, int]]
 
     handler: HTTPHandler
 
     running: bool
 
-    def __init__(self: typing.Self, version: str = "HTTP/1.1", addr: tuple[str, int] = ("localhost", 42069), handler: HTTPHandler | None = None) -> None:
+    def __init__(self: typing.Self,
+                 version: str = "HTTP/1.1",
+                 addr: tuple[str, int] = ("localhost", 80),
+                 handler: HTTPHandler | None = None) -> None:
         self.version = version
         self.addr = addr
         self.clients = {}
+        self.currently_handling = set()
         self.handler = handler if handler is not None else HTTPHandler()
         self.running = False
 
@@ -50,7 +56,7 @@ class HTTPServer:
         self.running = True
 
         while self.running:
-            tuples: tuple[list[socket.socket], list, list] = select.select((self.sock, *self.clients.values()), (), (), 0.1)
+            tuples: tuple[list[socket.socket], list, list] = select.select((self.sock, *self.clients.values()), (), (), 0.001)
             inputs: list[socket.socket] = tuples[0]
 
             for s in inputs:
@@ -65,21 +71,53 @@ class HTTPServer:
                     except OSError:
                         pass
                 else:
-                    self.handle_request(s)
+                    if s.getpeername() in self.currently_handling:
+                        continue
+                    
+                    threading.Thread(target=self.handle_request, args=(s,)).start()
+                    self.currently_handling.add(s.getpeername())
     
-    def handle_request(self: typing.Self, sock: socket.socket) -> None:
-        request: bytes = bytes()
-        while len(chunk:=sock.recv(1024)) == 1024:
-            request += chunk
-        request += chunk
+    def read_head(self: typing.Self, sock: socket.socket) -> bytes:
+        head: bytes = bytes()
 
-        if len(request) == 0:
-            del self.clients[sock.getpeername()]
-            sock.close()
-            return
+        EOF_reached: bool = False
+        while not EOF_reached:
+            chunk = sock.recv(1)
+
+            head += chunk
+
+            if head.endswith(httpconstants.CRLF * 2):
+                return head[:-2]
+            elif len(chunk) == 0:
+                EOF_reached = True
+
+        else:
+            if len(head) == 0:
+                return head
+            
+            peername = sock.getpeername()
+            raise httpconstants.HTTPError(f"Incomplete head recived from {peername[0]}:{peername[1]}!")
+        
+    def handle_request(self: typing.Self, sock: socket.socket) -> None:
+        sock_peername: tuple[str, int] = sock.getpeername()
+        del self.clients[sock_peername]
+
+        request_head: bytes = self.read_head(sock)
+
+        if len(request_head) == 0:
+            self.currently_handling.remove(sock_peername)
+            return sock.close()
 
         http_request = HTTPRequest()
-        http_request.parse_request(request)
+        http_request.parse_request_head(request_head.decode())
+
+        if (body_len:=http_request.headers["Content-Length"]) is not None:
+            request_body: bytes = sock.recv(body_len)
+
+            if (request_body_len:=len(request_body)) < body_len:
+                raise httpconstants.HTTPError(f"Request body length ({request_body_len} byte(s)) doesn't match the header information ({body_len} byte(s))!")
+
+            http_request.parse_request_body(request_body.decode())
 
         http_response = self.handler.generate_response(http_request, "gzip" in http_request.headers["Accept-Encoding"])
         print(f"[INFO]: {http_request.method} {http_request.target} {http_response.status}")
@@ -87,32 +125,63 @@ class HTTPServer:
         sock.sendall(http_response.encode_head())
         sock.sendall(http_response.encode_body())
 
-        if (conn:=getattr(http_request.headers, "Connection", None) is not None) and conn.lower() != "keep-alive":
-            del self.clients[sock.getpeername()]
+        if (conn:=getattr(http_request.headers, "Connection", None) is not None) and conn.lower() == "keep-alive":
+            self.clients[sock_peername] = sock
+        else:
             sock.close()
+
+        self.currently_handling.remove(sock_peername)
+        
     
     def version_to_tuple(self: typing.Self) -> tuple[int, int]:
         return tuple(map(int, self.version.split('/')[1].split('.')))
+    
+    def close(self: typing.Self) -> None:
+        self.running = False            
+        self.sock.close()
 
     def __enter__(self: typing.Self) -> typing.Self:
         return self
     
     def __exit__(self: typing.Self, *args) -> None:
-        self.running = False
-        self.sock.close()
+        if self.running:
+            self.close()
 
 
 class HTTPSServer(HTTPServer):
-    def __init__(self: typing.Self, version: str = "HTTP/1.1", addr: tuple[str, int] = ("localhost", 42069), handler: HTTPHandler | None = None) -> None:
+    certfile: str | bytes | pathlib.Path
+    keyfile: str | bytes | pathlib.Path
+
+    def __init__(self: typing.Self,
+                 version: str = "HTTP/1.1",
+                 addr: tuple[str, int] = ("localhost", 443),
+                 handler: HTTPHandler | None = None) -> None:
         super().__init__(version, addr, handler)
         self.ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
 
         self.ssl_context.load_default_certs(ssl.Purpose.CLIENT_AUTH)
 
+        self.certfile = "server.crt"
+        self.keyfile  = "server.key"
+
         self.sock = self.ssl_context.wrap_socket(self.sock, server_side=True)
     
-    def load_cert(self: typing.Self, certfile: str | bytes | pathlib.Path = "server.crt", keyfile: str | bytes | pathlib.Path = "server.key"):
-        self.ssl_context.load_cert_chain(certfile, keyfile)
+    def set_cert(self: typing.Self, certfile: str | bytes | pathlib.Path | None = None,
+                 keyfile: str | bytes | pathlib.Path | None = None) -> None:
+        if certfile is not None:
+            self.certfile = certfile
+
+        if keyfile is not None:
+            self.keyfile = keyfile
+
+    def load_cert(self: typing.Self):
+        self.ssl_context.load_cert_chain(self.certfile, self.keyfile)
+    
+    @typing.override
+    def serv(self: typing.Self) -> typing.NoReturn:
+        self.load_cert()
+
+        super().serv()
 
 def main() -> None:
     addr = ""
@@ -130,10 +199,8 @@ def main() -> None:
         http = threading.Thread(target=http_server.serv)
         https = threading.Thread(target=https_server.serv)
 
-        http.start()
+        # http.start()
         https.start()
-
-        https_server.load_cert()
 
         while http.is_alive() or https.is_alive():
             sleep(0.1)
