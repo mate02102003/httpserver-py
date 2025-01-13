@@ -7,9 +7,9 @@ import os.path
 
 from http import HTTPStatus, HTTPMethod
 
-from httpmessage import HTTPRequest, HTTPResponse
-from httpconstants import NOT_FOUND_PAGE, NOT_FOUND_PAGE_PATH
-from httputil import optional
+from http_message import HTTPRequest, HTTPResponse
+from http_constants import NOT_FOUND_PAGE, NOT_FOUND_PAGE_PATH
+from http_util import optional
 
 @dataclasses.dataclass
 class HTTPHandler:

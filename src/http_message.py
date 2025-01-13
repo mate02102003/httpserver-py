@@ -8,8 +8,8 @@ import typing
 from http import HTTPMethod, HTTPStatus
 
 from pformat import PP_Repr
-from httpconstants import CRLF
-from httpheaders import HTTPHeaders
+from http_constants import CRLF
+from http_headers import HTTPHeaders
 
 @dataclasses.dataclass(repr=False)
 class HTTPRequest(PP_Repr):

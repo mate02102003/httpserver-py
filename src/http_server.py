@@ -12,9 +12,9 @@ if typing.TYPE_CHECKING:
 
 from time import sleep
 
-import httpconstants
-from httpmessage  import HTTPRequest
-from httphandler  import HTTPHandler
+import http_constants
+from http_message  import HTTPRequest
+from http_handler  import HTTPHandler
 
 class HTTPServer:
     sock: socket.socket
@@ -41,7 +41,7 @@ class HTTPServer:
         self.running = False
 
         if self.version_to_tuple() >= (2, 0):
-            raise NotImplementedError("HTTP version 2 and 3 are not supported yet by this libary!")
+            raise NotImplementedError("HTTP version 2 and 3 are not supported yet!")
         else:
             socket_kind = socket.SOCK_STREAM
         
@@ -86,7 +86,7 @@ class HTTPServer:
 
             head += chunk
 
-            if head.endswith(httpconstants.CRLF * 2):
+            if head.endswith(http_constants.CRLF * 2):
                 return head[:-2]
             elif len(chunk) == 0:
                 EOF_reached = True
@@ -96,7 +96,7 @@ class HTTPServer:
                 return head
             
             peername = sock.getpeername()
-            raise httpconstants.HTTPError(f"Incomplete head recived from {peername[0]}:{peername[1]}!")
+            raise http_constants.HTTPError(f"Incomplete head recived from {peername[0]}:{peername[1]}!")
         
     def handle_request(self: typing.Self, sock: socket.socket) -> None:
         sock_peername: tuple[str, int] = sock.getpeername()
@@ -115,7 +115,7 @@ class HTTPServer:
             request_body: bytes = sock.recv(body_len)
 
             if (request_body_len:=len(request_body)) < body_len:
-                raise httpconstants.HTTPError(f"Request body length ({request_body_len} byte(s)) doesn't match the header information ({body_len} byte(s))!")
+                raise http_constants.HTTPError(f"Request body length ({request_body_len} byte(s)) doesn't match the header information ({body_len} byte(s))!")
 
             http_request.parse_request_body(request_body.decode())
 
@@ -184,7 +184,7 @@ class HTTPSServer(HTTPServer):
         super().serv()
 
 def main() -> None:
-    addr = ""
+    addr = "192.168.1.110"
     if len(sys.argv) > 1:
         http_port = int(sys.argv[1])
         if len(sys.argv) > 2:
@@ -199,8 +199,8 @@ def main() -> None:
         http = threading.Thread(target=http_server.serv)
         https = threading.Thread(target=https_server.serv)
 
-        # http.start()
-        https.start()
+        http.start()
+        # https.start()
 
         while http.is_alive() or https.is_alive():
             sleep(0.1)
